@@ -53,7 +53,9 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Click="btnClose_Click"
-            Content="OK" />
+            Content="OK"
+            IsDefault="True"
+            IsEnabled="False" />
         <Label
             Margin="10,86,0,0"
             HorizontalAlignment="Left"

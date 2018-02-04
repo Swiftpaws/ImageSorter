@@ -170,7 +170,7 @@ namespace ImageSorter
         {
             snackNotify.IsActive = false;
             imageHost.Source = new BitmapImage(new Uri(filePaths.ElementAt(selectedIndex).FullName));
-            this.Title = filePaths.ElementAt(selectedIndex).Name;
+            this.Title = filePaths.ElementAt(selectedIndex).Name + $"({selectedIndex + 1}/{filePaths.Count})";
         }
 
 

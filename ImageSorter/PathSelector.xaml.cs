@@ -21,6 +21,8 @@ namespace ImageSorter
     /// </summary>
     public partial class PathSelector : Window
     {
+        private bool alreadyOnePath = false;
+
         public PathSelector()
         {
             InitializeComponent();
@@ -28,7 +30,17 @@ namespace ImageSorter
             tbLoad.Text = Settings.Default.LoadPath;
             tbSaveUp.Text = Settings.Default.SavePathUP;
             tbSaveDown.Text = Settings.Default.SavePathDown;
+
+
+            CheckShouldEnableButton();
         }
+
+        private void CheckShouldEnableButton()
+        {
+            if (ValidatePaths())
+                btnClose.IsEnabled = true;
+        }
+
 
         private string GetPathDialog()
         {
@@ -46,7 +58,25 @@ namespace ImageSorter
 
         private bool ValidatePaths()
         {
-            return (Directory.Exists(tbLoad.Text) && Directory.Exists(tbSaveUp.Text) && Directory.Exists(tbSaveDown.Text));
+            if (Directory.Exists(tbLoad.Text))
+            {
+                if (Directory.Exists(tbSaveUp.Text) && !Directory.Exists(tbSaveDown.Text))
+                {
+                    Settings.Default.SavePathDown = tbSaveUp.Text;
+                    return true;
+                }
+                else if (!Directory.Exists(tbSaveUp.Text) && Directory.Exists(tbSaveDown.Text))
+                {
+                    Settings.Default.SavePathUP = tbSaveDown.Text;
+                    return true;
+                }
+                else if (Directory.Exists(tbSaveUp.Text) && Directory.Exists(tbSaveDown.Text))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
 
@@ -54,13 +84,13 @@ namespace ImageSorter
         {
             if (ValidatePaths())
             {
-                Console.WriteLine("Valid Paths");
                 Settings.Default.Save();
                 this.Close();
             }
             else
             {
-                MessageBox.Show("One or both paths are invalid");
+                MessageBox.Show("Invalid Path detected");
+                btnClose.IsEnabled = false;
             }
             
         }
@@ -82,6 +112,8 @@ namespace ImageSorter
             {
                 Settings.Default.LoadPath = loadPath;
                 tbLoad.Text = loadPath;
+
+                CheckShouldEnableButton();
             }
         }
 
@@ -102,6 +134,8 @@ namespace ImageSorter
             {
                 Settings.Default.SavePathUP = saveLocation;
                 tbSaveUp.Text = saveLocation;
+
+                CheckShouldEnableButton();
             }
 
         }
@@ -123,6 +157,8 @@ namespace ImageSorter
             {
                 Settings.Default.SavePathDown = saveLocation;
                 tbSaveDown.Text = saveLocation;
+
+                CheckShouldEnableButton();
             }
         }
     }
