@@ -1,23 +1,13 @@
-﻿using System;
+﻿using ImageSorter.Properties;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
-using ImageSorter.Properties;
-using MaterialDesignThemes.Wpf;
 
 namespace ImageSorter
 {
@@ -30,13 +20,12 @@ namespace ImageSorter
         private int selectedIndex = 0;
         private bool isMenuHidden = false;
 
-
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        #region  Helpers
+        #region Helpers
 
         #region SorterWindowsStyle
 
@@ -162,9 +151,7 @@ namespace ImageSorter
             }
         }
 
-
-        #endregion
-
+        #endregion SorterWindowsStyle
 
         private void ChangeSelection()
         {
@@ -172,7 +159,6 @@ namespace ImageSorter
             imageHost.Source = new BitmapImage(new Uri(filePaths.ElementAt(selectedIndex).FullName));
             this.Title = filePaths.ElementAt(selectedIndex).Name + $"({selectedIndex + 1}/{filePaths.Count})";
         }
-
 
         private void SaveCurrentPicture(bool isUpArrow)
         {
@@ -225,7 +211,6 @@ namespace ImageSorter
             //Save the image
             File.Copy(filePaths.ElementAt(selectedIndex).FullName, newPath);
 
-
             //Notification
             snackNotify.IsActive = true;
             System.Threading.Timer timer = null;
@@ -234,11 +219,10 @@ namespace ImageSorter
                     Application.Current.Dispatcher.BeginInvoke(
                         DispatcherPriority.Background,
                         new Action(() => snackNotify.IsActive = false));
-            timer.Dispose();
+                    timer.Dispose();
                 },
                 null, 2000, System.Threading.Timeout.Infinite);
         }
-
 
         private void LoadItemsFromPath()
         {
@@ -253,10 +237,8 @@ namespace ImageSorter
 
             filePaths = dinfo.GetFiles().OrderBy(x => x.Name, new CustomComparer<string>(CompareNatural)).ToList();
 
-
             menUp.Header = Settings.Default.SavePathUP.Split('\\').Last();
             menDown.Header = Settings.Default.SavePathDown.Split('\\').Last();
-
 
             if (filePaths.Count > 0)
             {
@@ -274,9 +256,7 @@ namespace ImageSorter
             selector.Show();
         }
 
-
-        #endregion
-
+        #endregion Helpers
 
         #region MenuHandlers
 
@@ -295,7 +275,7 @@ namespace ImageSorter
             SaveCurrentPicture(false);
         }
 
-        #endregion
+        #endregion MenuHandlers
 
         #region MainWindow Handlers
 
@@ -313,7 +293,6 @@ namespace ImageSorter
                     selectedIndex++;
                     ChangeSelection();
                 }
-
             }
             else if (e.Key == Key.Left)
             {
@@ -352,6 +331,6 @@ namespace ImageSorter
             }
         }
 
-        #endregion
+        #endregion MainWindow Handlers
     }
 }

@@ -53,7 +53,6 @@
                 Height="35"
                 Click="menDown_Click"
                 Icon="{materialDesign:PackIcon Kind=ArrowDown}" />
-
         </Menu>
         <!--  simplest form  -->
         <materialDesign:Snackbar

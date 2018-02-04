@@ -1,18 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ImageSorter.Properties;
+using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using ImageSorter.Properties;
 
 namespace ImageSorter
 {
@@ -31,7 +20,6 @@ namespace ImageSorter
             tbSaveUp.Text = Settings.Default.SavePathUP;
             tbSaveDown.Text = Settings.Default.SavePathDown;
 
-
             CheckShouldEnableButton();
         }
 
@@ -40,7 +28,6 @@ namespace ImageSorter
             if (ValidatePaths())
                 btnClose.IsEnabled = true;
         }
-
 
         private string GetPathDialog()
         {
@@ -79,7 +66,6 @@ namespace ImageSorter
             return false;
         }
 
-
         private void btnClose_Click(object sender, RoutedEventArgs e)
         {
             if (ValidatePaths())
@@ -92,7 +78,6 @@ namespace ImageSorter
                 MessageBox.Show("Invalid Path detected");
                 btnClose.IsEnabled = false;
             }
-            
         }
 
         private void tbLoad_GotFocus(object sender, RoutedEventArgs e)
@@ -137,7 +122,6 @@ namespace ImageSorter
 
                 CheckShouldEnableButton();
             }
-
         }
 
         private void tbSaveDown_GotFocus(object sender, RoutedEventArgs e)
