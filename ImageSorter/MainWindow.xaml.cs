@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using ImageSorter.Properties;
 using MaterialDesignThemes.Wpf;
 
@@ -164,6 +166,14 @@ namespace ImageSorter
         #endregion
 
 
+        private void ChangeSelection()
+        {
+            snackNotify.IsActive = false;
+            imageHost.Source = new BitmapImage(new Uri(filePaths.ElementAt(selectedIndex).FullName));
+            this.Title = filePaths.ElementAt(selectedIndex).Name;
+        }
+
+
         private void SaveCurrentPicture(bool isUpArrow)
         {
             var fileName = filePaths.ElementAt(selectedIndex).Name;
@@ -176,19 +186,59 @@ namespace ImageSorter
 
             if (File.Exists(newPath))
             {
-                MessageBox.Show("file already exists");
+                var existingFile = new FileInfo(newPath);
+
+                //Is it the same file - Calculate a new name
+                if (filePaths.ElementAt(selectedIndex).Length != existingFile.Length)
+                {
+                    int tries = 0;
+                    //When the file already exists
+                    while (File.Exists(newPath))
+                    {
+                        var split = fileName.Split('.');
+                        var newName = split.First() + tries + "." + split.Last();
+
+                        if (isUpArrow)
+                        {
+                            newPath = Settings.Default.SavePathUP + "\\" + newName;
+                        }
+                        else
+                        {
+                            newPath = Settings.Default.SavePathDown + "\\" + newName;
+                        }
+
+                        tries++;
+                        if (tries > 1000)
+                        {
+                            MessageBox.Show("There are too many files with this name: " + fileName);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("The file already exists in this location");
+                    return;
+                }
             }
 
+            //Save the image
+            File.Copy(filePaths.ElementAt(selectedIndex).FullName, newPath);
 
-            var image = new BitmapImage(new Uri(filePaths.ElementAt(selectedIndex).FullName));
-            BitmapEncoder encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(image));
 
-            using (var fileStream = new System.IO.FileStream(newPath, System.IO.FileMode.Create))
-            {
-                encoder.Save(fileStream);
-            }
+            //Notification
+            snackNotify.IsActive = true;
+            System.Threading.Timer timer = null;
+            timer = new System.Threading.Timer((obj) =>
+                {
+                    Application.Current.Dispatcher.BeginInvoke(
+                        DispatcherPriority.Background,
+                        new Action(() => snackNotify.IsActive = false));
+            timer.Dispose();
+                },
+                null, 2000, System.Threading.Timeout.Infinite);
         }
+
 
         private void LoadItemsFromPath()
         {
@@ -203,14 +253,14 @@ namespace ImageSorter
 
             filePaths = dinfo.GetFiles().OrderBy(x => x.Name, new CustomComparer<string>(CompareNatural)).ToList();
 
-            foreach (var VARIABLE in filePaths)
-            {
-                Console.WriteLine(VARIABLE);
-            }
+
+            menUp.Header = Settings.Default.SavePathUP.Split('\\').Last();
+            menDown.Header = Settings.Default.SavePathDown.Split('\\').Last();
+
 
             if (filePaths.Count > 0)
             {
-                imageHost.Source = new BitmapImage(new Uri(filePaths.First().FullName));
+                ChangeSelection();
             }
         }
 
@@ -235,6 +285,16 @@ namespace ImageSorter
             ShowPathSelector();
         }
 
+        private void menUp_Click(object sender, RoutedEventArgs e)
+        {
+            SaveCurrentPicture(true);
+        }
+
+        private void menDown_Click(object sender, RoutedEventArgs e)
+        {
+            SaveCurrentPicture(false);
+        }
+
         #endregion
 
         #region MainWindow Handlers
@@ -251,7 +311,7 @@ namespace ImageSorter
                 if (selectedIndex != filePaths.Count - 1)
                 {
                     selectedIndex++;
-                    imageHost.Source = new BitmapImage(new Uri(filePaths.ElementAt(selectedIndex).FullName));
+                    ChangeSelection();
                 }
 
             }
@@ -260,7 +320,7 @@ namespace ImageSorter
                 if (selectedIndex != 0)
                 {
                     selectedIndex--;
-                    imageHost.Source = new BitmapImage(new Uri(filePaths.ElementAt(selectedIndex).FullName));
+                    ChangeSelection();
                 }
             }
             else if (e.Key == Key.Down)
@@ -273,6 +333,11 @@ namespace ImageSorter
             }
         }
 
+        /// <summary>
+        /// Hide the menu
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Window_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (!isMenuHidden && filePaths != null)
@@ -287,9 +352,6 @@ namespace ImageSorter
             }
         }
 
-
         #endregion
-
-        
     }
 }

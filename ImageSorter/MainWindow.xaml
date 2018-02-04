@@ -39,8 +39,30 @@
             <MenuItem
                 x:Name="menChange"
                 Height="35"
+                Click="menChange_Click"
                 Header="Change Locations"
-                Icon="{materialDesign:PackIcon Kind=Folder}" Click="menChange_Click" />
+                Icon="{materialDesign:PackIcon Kind=Folder}" />
+            <Separator />
+            <MenuItem
+                x:Name="menUp"
+                Height="35"
+                Click="menUp_Click"
+                Icon="{materialDesign:PackIcon Kind=ArrowUp}" />
+            <MenuItem
+                x:Name="menDown"
+                Height="35"
+                Click="menDown_Click"
+                Icon="{materialDesign:PackIcon Kind=ArrowDown}" />
+
         </Menu>
+        <!--  simplest form  -->
+        <materialDesign:Snackbar
+            x:Name="snackNotify"
+            Grid.Row="1"
+            Grid.Column="0"
+            Height="40"
+            Margin="267,0,267,0"
+            IsActive="false"
+            Message="Saved" />
     </Grid>
 </Window>
