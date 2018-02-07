@@ -28,7 +28,6 @@ namespace ImageSorter
 
         #region Helpers
 
-
         private void ChangeSelection()
         {
             snackNotify.IsActive = false;
@@ -102,34 +101,50 @@ namespace ImageSorter
 
         private void LoadItemsFromPath()
         {
-            if(initialPath == null)
+            try
             {
-                initialPath = Settings.Default.LoadPath;
-                selectedIndex = 0;
+                if (initialPath == null)
+                {
+                    initialPath = Settings.Default.LoadPath;
+                    selectedIndex = 0;
+                }
+                else if (initialPath != Settings.Default.LoadPath)
+                {
+                    selectedIndex = 0;
+                }
+
+                if (string.IsNullOrEmpty(Settings.Default.LoadPath))
+                {
+                    this.Close();
+                }
+
+                this.WindowState = WindowState.Maximized;
+
+                var dinfo = new DirectoryInfo(@"" + Settings.Default.LoadPath);
+
+                // filePaths = dinfo.GetFiles().OrderBy(x => x.Name, new CustomComparer<string>(CompareNatural)).ToList();
+                filePaths = GetFiles(dinfo);
+
+                menUp.Header = Settings.Default.SavePathUP.Split('\\').Last();
+                menDown.Header = Settings.Default.SavePathDown.Split('\\').Last();
+
+                if (filePaths.Count > 0)
+                {
+                    ChangeSelection();
+                }
             }
-            else if(initialPath != Settings.Default.LoadPath)
+            catch (Exception ex)
             {
-                selectedIndex = 0; 
+                MessageBox.Show(ex.Message);
             }
+        }
 
-            if (string.IsNullOrEmpty(Settings.Default.LoadPath))
-            {
-                this.Close();
-            }
+        public static List<FileInfo> GetFiles(DirectoryInfo dir)
+        {
+            var supported = new[] { ".jpg", ".png" };
 
-            this.WindowState = WindowState.Maximized;
-
-            var dinfo = new DirectoryInfo(@"" + Settings.Default.LoadPath);
-
-            filePaths = dinfo.GetFiles().OrderBy(x => x.Name, new CustomComparer<string>(CompareNatural)).ToList();
-
-            menUp.Header = Settings.Default.SavePathUP.Split('\\').Last();
-            menDown.Header = Settings.Default.SavePathDown.Split('\\').Last();
-
-            if (filePaths.Count > 0)
-            {
-                ChangeSelection();
-            }
+            return dir.GetFiles().Where(x => supported.Contains(Path.GetExtension(x.FullName)))
+                .OrderBy(x => x.Name, new CustomComparer<string>(CompareNatural)).ToList();
         }
 
         private void ShowPathSelector()
