@@ -1,7 +1,6 @@
 ﻿using ImageSorter.Properties;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,32 +37,26 @@ namespace ImageSorter
             {
                 this.Title = $"({selectedIndex + 1}/{filePaths.Count}) - {filePaths.ElementAt(selectedIndex)?.Name ?? "err"}";
 
-                var task = Task.Run(() => LoadImage(filePaths.ElementAt(selectedIndex).FullName));
-     
+                var image = new BitmapImage();
+                image.BeginInit();
+                image.UriSource = new Uri(filePaths.ElementAt(selectedIndex).FullName);
+                image.EndInit();
 
+                if (filePaths.ElementAt(selectedIndex).Extension == ".gif")
+                {
+                    imageHost.Source = null;
+                    ImageBehavior.SetAnimatedSource(imageHost, image);
+                }
+                else
+                {
+                    ImageBehavior.SetAnimatedSource(imageHost, null);
+                    imageHost.Source = new BitmapImage(new Uri(filePaths.ElementAt(selectedIndex).FullName));
+                }
             }
             catch (Exception e)
             {
                 Application.Current.Dispatcher.Invoke(() => imageHost.Source = null);
-            }
-        }
 
-        private void LoadImage(string path)
-        {
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.UriSource = new Uri(path);
-            image.EndInit();
-
-            if (filePaths.ElementAt(selectedIndex).Extension == ".gif")
-            {
-                Application.Current.Dispatcher.Invoke(() => imageHost.Source = null);
-                Application.Current.Dispatcher.Invoke(() => ImageBehavior.SetAnimatedSource(imageHost, image));
-            }
-            else
-            {
-                Application.Current.Dispatcher.Invoke(() => ImageBehavior.SetAnimatedSource(imageHost, null));
-                Application.Current.Dispatcher.Invoke(() => imageHost.Source = new BitmapImage(new Uri(filePaths.ElementAt(selectedIndex).FullName)));
             }
         }
 
