@@ -11,6 +11,7 @@ namespace ImageSorter
     public partial class PathSelector : Window
     {
         private bool alreadyOnePath = false;
+        private bool shouldExitOnX = true;
 
         public PathSelector()
         {
@@ -23,24 +24,102 @@ namespace ImageSorter
             CheckShouldEnableButton();
         }
 
-        private void CheckShouldEnableButton()
+        #region EventHandlers
+
+        private void btnLoad_Click(object sender, RoutedEventArgs e)
+        {
+            var loadPath = "";
+            try
+            {
+                loadPath = GetPathDialog().Replace("\"", string.Empty);
+            }
+            catch (Exception ex)
+            {
+                //dont care
+            }
+            if (loadPath != string.Empty)
+            {
+                Settings.Default.LoadPath = loadPath;
+                tbLoad.Text = loadPath;
+
+                CheckShouldEnableButton();
+            }
+        }
+
+        private void btnUp_Click(object sender, RoutedEventArgs e)
+        {
+            var saveLocation = "";
+            try
+            {
+                saveLocation = GetPathDialog().Replace("\"", string.Empty);
+            }
+            catch (Exception ex)
+            {
+            }
+
+            if (saveLocation != string.Empty)
+            {
+                Settings.Default.SavePathUP = saveLocation;
+                tbSaveUp.Text = saveLocation;
+
+                CheckShouldEnableButton();
+            }
+        }
+
+        private void btnDown_Click(object sender, RoutedEventArgs e)
+        {
+            var saveLocation = "";
+            try
+            {
+                saveLocation = GetPathDialog().Replace("\"", string.Empty);
+            }
+            catch (Exception ex)
+            {
+            }
+
+            if (saveLocation != string.Empty)
+            {
+                Settings.Default.SavePathDown = saveLocation;
+                tbSaveDown.Text = saveLocation;
+
+                CheckShouldEnableButton();
+            }
+        }
+        private void btnOK_Click(object sender, RoutedEventArgs e)
         {
             if (ValidatePaths())
-                btnClose.IsEnabled = true;
+            {
+                shouldExitOnX = false;
+                Settings.Default.Save();
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Invalid Path detected");
+                btnOK.IsEnabled = false;
+            }
         }
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if(shouldExitOnX)
+                Environment.Exit(1);
+        }
+        #endregion EventHandlers
+
+        #region Helpers
 
         private string GetPathDialog()
         {
             var dialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
-            if (dialog.ShowDialog(this).GetValueOrDefault())
-            {
-                if (Directory.Exists(dialog.SelectedPath))
-                {
-                    return dialog.SelectedPath;
-                }
-            }
+            if (dialog.ShowDialog(this).GetValueOrDefault() && Directory.Exists(dialog.SelectedPath))
+                return dialog.SelectedPath;
 
-            return null;
+            return string.Empty;
+        }
+
+        private void CheckShouldEnableButton()
+        {
+            btnOK.IsEnabled = ValidatePaths();
         }
 
         private bool ValidatePaths()
@@ -66,84 +145,7 @@ namespace ImageSorter
             return false;
         }
 
-        private void btnClose_Click(object sender, RoutedEventArgs e)
-        {
-            if (ValidatePaths())
-            {
-                Settings.Default.Save();
-                this.Close();
-            }
-            else
-            {
-                MessageBox.Show("Invalid Path detected");
-                btnClose.IsEnabled = false;
-            }
-        }
 
-        private void tbLoad_GotFocus(object sender, RoutedEventArgs e)
-        {
-            var loadPath = "";
-
-            try
-            {
-                loadPath = GetPathDialog().Replace("\"", string.Empty);
-            }
-            catch (Exception ex)
-            {
-                tbLoad.Text = "Invalid Path";
-            }
-
-            if (Directory.Exists(loadPath))
-            {
-                Settings.Default.LoadPath = loadPath;
-                tbLoad.Text = loadPath;
-
-                CheckShouldEnableButton();
-            }
-        }
-
-        private void tbSave_GotFocus(object sender, RoutedEventArgs e)
-        {
-            var saveLocation = "";
-
-            try
-            {
-                saveLocation = GetPathDialog().Replace("\"", string.Empty);
-            }
-            catch (Exception ex)
-            {
-                tbSaveUp.Text = "Invalid Path";
-            }
-
-            if (Directory.Exists(saveLocation))
-            {
-                Settings.Default.SavePathUP = saveLocation;
-                tbSaveUp.Text = saveLocation;
-
-                CheckShouldEnableButton();
-            }
-        }
-
-        private void tbSaveDown_GotFocus(object sender, RoutedEventArgs e)
-        {
-            var saveLocation = "";
-
-            try
-            {
-                saveLocation = GetPathDialog().Replace("\"", string.Empty);
-            }
-            catch (Exception ex)
-            {
-                tbSaveDown.Text = "Invalid Path";
-            }
-
-            if (Directory.Exists(saveLocation))
-            {
-                Settings.Default.SavePathDown = saveLocation;
-                tbSaveDown.Text = saveLocation;
-
-                CheckShouldEnableButton();
-            }
-        }
+        #endregion Helpers
     }
 }

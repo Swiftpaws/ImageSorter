@@ -20,53 +20,89 @@
     Topmost="True"
     WindowStartupLocation="CenterOwner"
     WindowStyle="ToolWindow"
-    mc:Ignorable="d">
+    mc:Ignorable="d" Closing="Window_Closing">
     <Grid>
-        <Label
-            Margin="10,10,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Content="Loading Location:" />
+        <materialDesign:PackIcon
+            Width="31"
+            Height="34"
+            Margin="10,1,0,0"
+            Kind="FolderOutline" />
         <TextBox
             x:Name="tbLoad"
             Height="23"
-            Margin="133,11,10.286,0"
+            Margin="52,10,35.286,0"
             VerticalAlignment="Top"
-            GotFocus="tbLoad_GotFocus"
+            IsReadOnly="True"
             TextWrapping="Wrap" />
-        <Label
-            Margin="10,49,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Content="Saving Location UP:" />
+        <materialDesign:PackIcon
+            Width="31"
+            Height="34"
+            Margin="10,40,0,0"
+            Kind="ArrowUpDropCircleOutline" />
+        <materialDesign:PackIcon
+            Width="31"
+            Height="34"
+            Margin="10,77,0,0"
+            Kind="ArrowDownDropCircleOutline" />
         <TextBox
             x:Name="tbSaveUp"
             Height="23"
-            Margin="133,51,10.286,0"
+            Margin="52,47,35.286,0"
             VerticalAlignment="Top"
-            GotFocus="tbSave_GotFocus"
+            IsReadOnly="True"
             TextWrapping="Wrap" />
         <Button
-            x:Name="btnClose"
+            x:Name="btnOK"
             Width="75"
             Margin="641,150,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Click="btnClose_Click"
+            Click="btnOK_Click"
             Content="OK"
             IsDefault="True"
             IsEnabled="False" />
-        <Label
-            Margin="10,86,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Content="Saving Location Down:" />
         <TextBox
             x:Name="tbSaveDown"
             Height="23"
-            Margin="156,88,10.286,0"
+            Margin="52,84,35.286,0"
             VerticalAlignment="Top"
-            GotFocus="tbSaveDown_GotFocus"
+            IsReadOnly="True"
             TextWrapping="Wrap" />
+        <Button
+            x:Name="btnLoad"
+            Width="26"
+            Height="25"
+            Margin="0,10,3.286,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            materialDesign:ButtonProgressAssist.IsIndicatorVisible="False"
+            materialDesign:ButtonProgressAssist.Value="100"
+            Click="btnLoad_Click"
+            Content="{materialDesign:PackIcon DotsHorizontal}"
+            Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}" />
+        <Button
+            x:Name="btnUp"
+            Width="26"
+            Height="27"
+            Margin="0,47,3.286,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            materialDesign:ButtonProgressAssist.IsIndicatorVisible="False"
+            materialDesign:ButtonProgressAssist.Value="100"
+            Click="btnUp_Click"
+            Content="{materialDesign:PackIcon DotsHorizontal}"
+            Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}" />
+        <Button
+            x:Name="btnDown"
+            Width="26"
+            Height="27"
+            Margin="0,84,3.286,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            materialDesign:ButtonProgressAssist.IsIndicatorVisible="False"
+            materialDesign:ButtonProgressAssist.Value="100"
+            Click="btnDown_Click"
+            Content="{materialDesign:PackIcon DotsHorizontal}"
+            Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}" />
     </Grid>
 </Window>

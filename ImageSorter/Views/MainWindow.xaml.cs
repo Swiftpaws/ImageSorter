@@ -1,12 +1,15 @@
 ﻿using ImageSorter.Properties;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using WpfAnimatedGif;
 using static ImageSorter.Helpers.CompareHelper;
 
 namespace ImageSorter
@@ -31,8 +34,37 @@ namespace ImageSorter
         private void ChangeSelection()
         {
             snackNotify.IsActive = false;
-            imageHost.Source = new BitmapImage(new Uri(filePaths.ElementAt(selectedIndex).FullName));
-            this.Title = $"({selectedIndex + 1}/{filePaths.Count}) - {filePaths.ElementAt(selectedIndex)?.Name ?? "err"}";
+            try
+            {
+                this.Title = $"({selectedIndex + 1}/{filePaths.Count}) - {filePaths.ElementAt(selectedIndex)?.Name ?? "err"}";
+
+                var task = Task.Run(() => LoadImage(filePaths.ElementAt(selectedIndex).FullName));
+     
+
+            }
+            catch (Exception e)
+            {
+                Application.Current.Dispatcher.Invoke(() => imageHost.Source = null);
+            }
+        }
+
+        private void LoadImage(string path)
+        {
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.UriSource = new Uri(path);
+            image.EndInit();
+
+            if (filePaths.ElementAt(selectedIndex).Extension == ".gif")
+            {
+                Application.Current.Dispatcher.Invoke(() => imageHost.Source = null);
+                Application.Current.Dispatcher.Invoke(() => ImageBehavior.SetAnimatedSource(imageHost, image));
+            }
+            else
+            {
+                Application.Current.Dispatcher.Invoke(() => ImageBehavior.SetAnimatedSource(imageHost, null));
+                Application.Current.Dispatcher.Invoke(() => imageHost.Source = new BitmapImage(new Uri(filePaths.ElementAt(selectedIndex).FullName)));
+            }
         }
 
         private void SaveCurrentPicture(bool isUpArrow)
@@ -141,7 +173,7 @@ namespace ImageSorter
 
         public static List<FileInfo> GetFiles(DirectoryInfo dir)
         {
-            var supported = new[] { ".jpg", ".png" };
+            var supported = new[] { ".jpg", ".png", ".gif" };
 
             return dir.GetFiles().Where(x => supported.Contains(Path.GetExtension(x.FullName)))
                 .OrderBy(x => x.Name, new CustomComparer<string>(CompareNatural)).ToList();
