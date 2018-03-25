@@ -10,7 +10,7 @@
     Title="ImageSorter"
     Width="826.714"
     Height="511.286"
-    Background="{DynamicResource MaterialDesignPaper}"
+    Background="{DynamicResource MaterialDesignBackground}"
     FontFamily="{DynamicResource MaterialDesignFont}"
     KeyDown="Window_KeyDown"
     Loaded="Window_Loaded"
@@ -55,13 +55,13 @@
                 Click="menDown_Click"
                 Icon="{materialDesign:PackIcon Kind=ArrowDown}" />
         </Menu>
-        <!--  simplest form  -->
         <materialDesign:Snackbar
             x:Name="snackNotify"
             Grid.Row="1"
             Grid.Column="0"
             Height="40"
-            Margin="267,0,267,0"
+            Margin="160,0,160,0"
+            HorizontalAlignment="Stretch"
             IsActive="false"
             Message="Saved" />
     </Grid>

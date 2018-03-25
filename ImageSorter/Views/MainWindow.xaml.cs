@@ -1,6 +1,7 @@
 ﻿using ImageSorter.Properties;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -152,6 +153,7 @@ namespace ImageSorter
 
                 menUp.Header = Settings.Default.SavePathUP.Split('\\').Last();
                 menDown.Header = Settings.Default.SavePathDown.Split('\\').Last();
+                menChange.Header = Settings.Default.LoadPath.Split('\\').Last();
 
                 if (filePaths.Count > 0)
                 {
