@@ -85,6 +85,7 @@ namespace ImageSorter
                 CheckShouldEnableButton();
             }
         }
+
         private void btnOK_Click(object sender, RoutedEventArgs e)
         {
             if (ValidatePaths())
@@ -99,11 +100,13 @@ namespace ImageSorter
                 btnOK.IsEnabled = false;
             }
         }
+
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if(shouldExitOnX)
+            if (shouldExitOnX)
                 Environment.Exit(1);
         }
+
         #endregion EventHandlers
 
         #region Helpers
@@ -144,7 +147,6 @@ namespace ImageSorter
 
             return false;
         }
-
 
         #endregion Helpers
     }

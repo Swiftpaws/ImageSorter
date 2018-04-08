@@ -1,14 +1,11 @@
 ﻿using ImageSorter.Properties;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using WpfAnimatedGif;
 using static ImageSorter.Helpers.CompareHelper;
 
@@ -20,6 +17,7 @@ namespace ImageSorter
     public partial class MainWindow : Window
     {
         private List<FileInfo> filePaths;
+        private string lastSavePath = string.Empty;
         private int selectedIndex = 0;
         private bool isMenuHidden = false;
         private string initialPath = null;
@@ -57,7 +55,6 @@ namespace ImageSorter
             catch (Exception e)
             {
                 Application.Current.Dispatcher.Invoke(() => imageHost.Source = null);
-
             }
         }
 
@@ -112,9 +109,11 @@ namespace ImageSorter
             //Save the image
             File.Copy(filePaths.ElementAt(selectedIndex).FullName, newPath);
 
+            lastSavePath = newPath;
+
             //Notification
             snackNotify.IsActive = true;
-            System.Threading.Timer timer = null;
+            /*System.Threading.Timer timer = null;
             timer = new System.Threading.Timer((obj) =>
                 {
                     Application.Current.Dispatcher.BeginInvoke(
@@ -122,7 +121,20 @@ namespace ImageSorter
                         new Action(() => snackNotify.IsActive = false));
                     timer.Dispose();
                 },
-                null, 2000, System.Threading.Timeout.Infinite);
+                null, 10000, System.Threading.Timeout.Infinite);*/
+        }
+
+        private void SnackbarMessage_ActionClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                File.Delete(lastSavePath);
+                snackNotify.IsActive = false;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Undo failed");
+            }
         }
 
         private void LoadItemsFromPath()
@@ -144,7 +156,8 @@ namespace ImageSorter
                     this.Close();
                 }
 
-                this.WindowState = WindowState.Maximized;
+                //this.WindowState = WindowState.Maximized;
+                this.Focus();
 
                 var dinfo = new DirectoryInfo(@"" + Settings.Default.LoadPath);
 
