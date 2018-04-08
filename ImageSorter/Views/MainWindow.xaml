@@ -60,10 +60,13 @@
             Grid.Row="1"
             Grid.Column="0"
             Height="40"
-            Margin="250,0,250,0"
+            Margin="200,0,200,0"
             HorizontalAlignment="Stretch"
             IsActive="false">
-            <materialDesign:SnackbarMessage ActionContent="UNDO" Content="Saved" ActionClick="SnackbarMessage_ActionClick" />
+            <materialDesign:SnackbarMessage
+                ActionClick="SnackbarMessage_ActionClick"
+                ActionContent="UNDO"
+                Content="Saved" />
         </materialDesign:Snackbar>
     </Grid>
 </Window>

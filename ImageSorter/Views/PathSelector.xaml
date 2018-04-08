@@ -10,6 +10,7 @@
     Width="731.738"
     Height="219.873"
     Background="{DynamicResource MaterialDesignPaper}"
+    Closing="Window_Closing"
     FontFamily="{DynamicResource MaterialDesignFont}"
     ResizeMode="NoResize"
     TextElement.FontSize="13"
@@ -20,7 +21,7 @@
     Topmost="True"
     WindowStartupLocation="CenterOwner"
     WindowStyle="ToolWindow"
-    mc:Ignorable="d" Closing="Window_Closing">
+    mc:Ignorable="d">
     <Grid>
         <materialDesign:PackIcon
             Width="31"
@@ -53,14 +54,12 @@
             TextWrapping="Wrap" />
         <Button
             x:Name="btnOK"
-            Width="75"
-            Margin="641,150,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
+            Height="32"
+            Margin="628,141,0,0"
             Click="btnOK_Click"
             Content="OK"
             IsDefault="True"
-            IsEnabled="False" />
+            IsEnabled="False" HorizontalAlignment="Left" Width="75" VerticalAlignment="Top" />
         <TextBox
             x:Name="tbSaveDown"
             Height="23"
@@ -70,8 +69,8 @@
             TextWrapping="Wrap" />
         <Button
             x:Name="btnLoad"
-            Width="26"
-            Height="25"
+            Width="27"
+            Height="27"
             Margin="0,10,3.286,0"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
@@ -82,7 +81,7 @@
             Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}" />
         <Button
             x:Name="btnUp"
-            Width="26"
+            Width="27"
             Height="27"
             Margin="0,47,3.286,0"
             HorizontalAlignment="Right"
@@ -94,7 +93,7 @@
             Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}" />
         <Button
             x:Name="btnDown"
-            Width="26"
+            Width="27"
             Height="27"
             Margin="0,84,3.286,0"
             HorizontalAlignment="Right"
