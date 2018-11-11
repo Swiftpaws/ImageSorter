@@ -3,13 +3,15 @@ using System;
 using System.IO;
 using System.Windows;
 
-namespace ImageSorter
+namespace ImageSorter.Views
 {
     /// <summary>
     /// Interaction logic for PathSelector.xaml
     /// </summary>
     public partial class PathSelector : Window
     {
+        public static bool ExitOnAbortOverride = false;
+
         private bool alreadyOnePath = false;
         private bool shouldExitOnX = true;
 
@@ -53,8 +55,9 @@ namespace ImageSorter
             {
                 saveLocation = GetPathDialog().Replace("\"", string.Empty);
             }
-            catch (Exception ex)
+            catch
             {
+                //Ignored
             }
 
             if (saveLocation != string.Empty)
@@ -73,8 +76,9 @@ namespace ImageSorter
             {
                 saveLocation = GetPathDialog().Replace("\"", string.Empty);
             }
-            catch (Exception ex)
+            catch
             {
+                //Ignored
             }
 
             if (saveLocation != string.Empty)
@@ -103,8 +107,11 @@ namespace ImageSorter
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (shouldExitOnX)
+            if (shouldExitOnX && !ExitOnAbortOverride)
+            {
                 Environment.Exit(1);
+            }
+                
         }
 
         #endregion EventHandlers

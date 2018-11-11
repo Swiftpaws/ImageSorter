@@ -1,15 +1,17 @@
-﻿using ImageSorter.Properties;
+﻿using ImageSorter.Helpers;
+using ImageSorter.Properties;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using WpfAnimatedGif;
 using static ImageSorter.Helpers.CompareHelper;
 
-namespace ImageSorter
+namespace ImageSorter.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -19,8 +21,9 @@ namespace ImageSorter
         private List<FileInfo> filePaths;
         private string lastSavePath = string.Empty;
         private int selectedIndex = 0;
-        private bool isMenuHidden = false;
         private string initialPath = null;
+
+        private Timer SelectionChangeTimer;
 
         public MainWindow()
         {
@@ -31,13 +34,27 @@ namespace ImageSorter
 
         private void ChangeSelection()
         {
+            if(filePaths.Count <= selectedIndex) return;
+            Title = $"({selectedIndex + 1}/{filePaths.Count}) - {filePaths.ElementAt(selectedIndex)?.Name ?? "err"}";
+
+            SelectionChangeTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+
+            SelectionChangeTimer = new Timer((obj) =>
+            {
+                Dispatcher.InvokeAsync(ChangeSelection_Work);
+            }, null, 50, Timeout.Infinite);
+        }
+
+        private void ChangeSelection_Work()
+        {
             snackNotify.IsActive = false;
             try
             {
-                this.Title = $"({selectedIndex + 1}/{filePaths.Count}) - {filePaths.ElementAt(selectedIndex)?.Name ?? "err"}";
+                GC.Collect();
 
                 var image = new BitmapImage();
                 image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
                 image.UriSource = new Uri(filePaths.ElementAt(selectedIndex).FullName);
                 image.EndInit();
 
@@ -49,10 +66,10 @@ namespace ImageSorter
                 else
                 {
                     ImageBehavior.SetAnimatedSource(imageHost, null);
-                    imageHost.Source = new BitmapImage(new Uri(filePaths.ElementAt(selectedIndex).FullName));
+                    imageHost.Source = image;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Application.Current.Dispatcher.Invoke(() => imageHost.Source = null);
             }
@@ -61,7 +78,7 @@ namespace ImageSorter
         private void SaveCurrentPicture(bool isUpArrow)
         {
             var fileName = filePaths.ElementAt(selectedIndex).Name;
-            var newPath = Settings.Default.SavePathDown + "\\" + fileName;
+            var newPath = $"{Settings.Default.SavePathDown}\\{fileName}";
 
             if (isUpArrow)
             {
@@ -75,7 +92,7 @@ namespace ImageSorter
                 //Is it the same file - Calculate a new name
                 if (filePaths.ElementAt(selectedIndex).Length != existingFile.Length)
                 {
-                    int tries = 0;
+                    var tries = 0;
                     //When the file already exists
                     while (File.Exists(newPath))
                     {
@@ -113,28 +130,63 @@ namespace ImageSorter
 
             //Notification
             snackNotify.IsActive = true;
-            /*System.Threading.Timer timer = null;
-            timer = new System.Threading.Timer((obj) =>
-                {
-                    Application.Current.Dispatcher.BeginInvoke(
-                        DispatcherPriority.Background,
-                        new Action(() => snackNotify.IsActive = false));
-                    timer.Dispose();
-                },
-                null, 10000, System.Threading.Timeout.Infinite);*/
+            snackNotifyMessage.Content = "Saved to: " + newPath;
         }
 
-        private void SnackbarMessage_ActionClick(object sender, RoutedEventArgs e)
+        private void DeleteLoadFolder()
         {
-            try
+            var dirInfo = new DirectoryInfo(Settings.Default.LoadPath);
+            var files = dirInfo.GetFiles();
+            var respFolder = MessageBox.Show("The selected folder contains no remaining relevant files\nDelete it?", dirInfo.FullName, MessageBoxButton.YesNo);
+            if (respFolder == MessageBoxResult.Yes)
             {
-                File.Delete(lastSavePath);
-                snackNotify.IsActive = false;
+                if (files.Length > 0)
+                {
+                    var filesText = files.Aggregate(string.Empty, (current, v) => current + (v + "\n"));
+                    var responseFolderWithContent = MessageBox.Show("The folder still contains some non media files\n"+filesText, "Confirm deletion", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (responseFolderWithContent == MessageBoxResult.Yes)
+                    {
+                        foreach (var f in files)
+                        {
+                            f.Delete();
+                        }
+                    }
+                }
+
+                files = dirInfo.GetFiles();
+                if(files.Any())
+                    return;
+                
+                dirInfo.Delete();
+                ShowPathSelector();
             }
-            catch (Exception)
-            {
-                MessageBox.Show("Undo failed");
-            }
+        }
+
+        private void DeleteViewedFiles()
+        {
+            var countToDelete = selectedIndex + 1;
+            var response = MessageBox.Show($"Confirm deletion of {countToDelete} file(s)", "Are you sure about that?",
+                MessageBoxButton.YesNo);
+
+            if (response == MessageBoxResult.No) return;
+
+            imageHost.Source = null;
+            ImageBehavior.SetAnimatedSource(imageHost, null);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            var filesToDelete = filePaths.Take(countToDelete).ToList();
+            var countDeleted = filesToDelete.DeleteAllFiles();
+
+            filePaths = filePaths.Except(filesToDelete).ToList();
+            selectedIndex = 0;
+            ChangeSelection();
+
+            if (countDeleted != filesToDelete.Count)
+                MessageBox.Show($"Deleted {countDeleted} file(s) instead of {filesToDelete.Count}", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            else
+                MessageBox.Show($"Deleted {countDeleted} file(s)", "Finished", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void LoadItemsFromPath()
@@ -153,16 +205,13 @@ namespace ImageSorter
 
                 if (string.IsNullOrEmpty(Settings.Default.LoadPath))
                 {
-                    this.Close();
+                    Close();
                 }
 
                 //this.WindowState = WindowState.Maximized;
-                this.Focus();
+                imageHost.Focus();
 
-                var dinfo = new DirectoryInfo(@"" + Settings.Default.LoadPath);
-
-                // filePaths = dinfo.GetFiles().OrderBy(x => x.Name, new CustomComparer<string>(CompareNatural)).ToList();
-                filePaths = GetFiles(dinfo);
+                filePaths = GetFiles(Settings.Default.LoadPath);
 
                 menUp.Header = Settings.Default.SavePathUP.Split('\\').Last();
                 menDown.Header = Settings.Default.SavePathDown.Split('\\').Last();
@@ -179,11 +228,11 @@ namespace ImageSorter
             }
         }
 
-        public static List<FileInfo> GetFiles(DirectoryInfo dir)
+        public static List<FileInfo> GetFiles(string path)
         {
             var supported = new[] { ".jpg", ".png", ".gif" };
 
-            return dir.GetFiles().Where(x => supported.Contains(Path.GetExtension(x.FullName)))
+            return new DirectoryInfo(path).GetFiles().Where(x => supported.Contains(Path.GetExtension(x.FullName)))
                 .OrderBy(x => x.Name, new CustomComparer<string>(CompareNatural)).ToList();
         }
 
@@ -201,8 +250,24 @@ namespace ImageSorter
 
         #region MenuHandlers
 
+        private void SnackbarMessage_ActionClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                File.Delete(lastSavePath);
+                snackNotify.IsActive = false;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Undo failed");
+            }
+        }
+
         private void menChange_Click(object sender, RoutedEventArgs e)
         {
+            PathSelector.ExitOnAbortOverride = true;
             ShowPathSelector();
         }
 
@@ -216,6 +281,17 @@ namespace ImageSorter
             SaveCurrentPicture(false);
         }
 
+        private void MenDelete_OnClick(object sender, RoutedEventArgs e)
+        {
+            if(filePaths.Count > 0)
+                DeleteViewedFiles();
+
+            if (filePaths.Count == 0)
+                DeleteLoadFolder();
+        }
+
+
+
         #endregion MenuHandlers
 
         #region MainWindow Handlers
@@ -227,29 +303,39 @@ namespace ImageSorter
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Right)
+            switch (e.Key)
             {
-                if (selectedIndex != filePaths.Count - 1)
-                {
-                    selectedIndex++;
-                    ChangeSelection();
-                }
-            }
-            else if (e.Key == Key.Left)
-            {
-                if (selectedIndex != 0)
-                {
-                    selectedIndex--;
-                    ChangeSelection();
-                }
-            }
-            else if (e.Key == Key.Down)
-            {
-                SaveCurrentPicture(false);
-            }
-            else if (e.Key == Key.Up)
-            {
-                SaveCurrentPicture(true);
+                case Key.Right:
+                    {
+                        if (selectedIndex != filePaths.Count - 1)
+                        {
+                            selectedIndex++;
+                            ChangeSelection();
+                        }
+
+                        break;
+                    }
+                case Key.Left:
+                    {
+                        if (selectedIndex != 0)
+                        {
+                            selectedIndex--;
+                            ChangeSelection();
+                        }
+
+                        break;
+                    }
+                case Key.Down:
+                    SaveCurrentPicture(isUpArrow: false);
+                    break;
+
+                case Key.Up:
+                    SaveCurrentPicture(isUpArrow: true);
+                    break;
+
+                case Key.Delete:
+                    MenDelete_OnClick(null, null);
+                    break;
             }
         }
 
@@ -260,16 +346,9 @@ namespace ImageSorter
         /// <param name="e"></param>
         private void Window_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (!isMenuHidden && filePaths != null)
-            {
-                rowMenu.Height = new GridLength(0);
-                isMenuHidden = true;
-            }
-            else
-            {
-                rowMenu.Height = new GridLength(35);
-                isMenuHidden = false;
-            }
+            if (filePaths == null) return;
+
+            menU.Visibility = menU.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
         }
 
         #endregion MainWindow Handlers
